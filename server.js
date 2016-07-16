@@ -75,13 +75,27 @@ app.get('/my/login', function(req, res, next) {
     res.render('login', viewData);
 });
 
+var validateCode = function(req, next) {
+    delete req.session.error;
+    req.model.smscode.findOne({ phone_number: req.body.phone_number }, function(err, smscode) {
+        console.log(smscode);
+        console.log(err);
+        if (!err && smscode && smscode.samePassword(req.body.password)) {
+            return next(null, smscode);
+        } else {
+            var error = new Error('Your confirmation code is incorrect.');
+            return next(error);
+        }
+    });
+};
+
 var validateUser = function(req, next) {
     delete req.session.error;
-    req.model.user.findOne({ email: req.body.email }, function(err, user) {
-        if (!err && user && user.samePassword(req.body.password)) {
+    req.model.user.findOne({ phone_number: req.body.phone_number }, function(err, user) {
+        if (!err && user) {
             return next(null, user);
         } else {
-            var error = new Error('Username or password incorrect.');
+            var error = new Error('Your confirmation code is incorrect.');
             return next(error);
         }
     });
@@ -100,7 +114,7 @@ app.post('/sendCode', oidc.sendCode(), function(req, res, next) {
     res.send('code sent successfully');
 });
 
-app.post('/my/login', oidc.login(validateUser), afterLogin, loginError);
+app.post('/my/login', oidc.login(validateCode), afterLogin, loginError);
 
 
 app.all('/logout', oidc.removetokens(), function(req, res, next) {

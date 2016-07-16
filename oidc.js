@@ -432,6 +432,7 @@ OpenIDConnect.prototype.sendCode = function() {
                     if (err) {
                         return res.status(400).json(err);
                     } else if (!smscode) {
+                        // if no phone_number to password mapping is found, create one
                         req.model.smscode.create({ phone_number: phone, password: newPassword }, function(err, smscode) {
                             if (err || !smscode) {
                                 return res.status(400).json(err);
@@ -451,6 +452,7 @@ OpenIDConnect.prototype.sendCode = function() {
                             }
                         });
                     } else {
+                        // if existing phone_number to password mapping is found, destroy and create a new one
                         req.model.smscode.destroy({ phone_number: phone }, function(err, result) {
                             if (err) {
                                 return res.status(400).json(err);
@@ -477,39 +479,46 @@ OpenIDConnect.prototype.sendCode = function() {
                 });
             }
 
-            // return next();
         }
     ];
 };
 
 
-OpenIDConnect.prototype.login = function(validateUser) {
+OpenIDConnect.prototype.login = function(validateCode) {
     var self = this;
 
-    return [self.use({ policies: { loggedIn: false }, models: 'user' }),
+    return [self.use({ policies: { loggedIn: false }, models: ['user', 'smscode'] }),
         function(req, res, next) {
-            validateUser(req, /*next:*/ function(error, user) {
-                if (!error && !user) {
-                    error = new Error('User not validated');
-                }
-                if (!error) {
-                    if (user.id) {
-                        req.session.user = user.id;
-                    } else {
-                        delete req.session.user;
-                    }
-                    if (user.sub) {
-                        if (typeof user.sub === 'function') {
-                            req.session.sub = user.sub();
-                        } else {
-                            req.session.sub = user.sub;
-                        }
-                    } else {
-                        delete req.session.sub;
-                    }
-                    return next();
+
+
+            validateCode(req, function(err, smscode) {
+                if (err || !smscode) {
+                    return res.status(400).send('Confirmation code is not validated');
                 } else {
-                    return next(error);
+
+                    req.model.user.findOne({ phone_number: smscode.phone }, function(err, user) {
+                        if (err) {
+                            return res.status(400).send('Confirmation code is not validated');
+                        } else if (!user) {
+                            return res.redirect('/user/create');
+                        } else {
+                            if (user.id) {
+                                req.session.user = user.id;
+                            } else {
+                                delete req.session.user;
+                            }
+                            if (user.sub) {
+                                if (typeof user.sub === 'function') {
+                                    req.session.sub = user.sub();
+                                } else {
+                                    req.session.sub = user.sub;
+                                }
+                            } else {
+                                delete req.session.sub;
+                            }
+                            return next();
+                        }
+                    });
                 }
             });
         }

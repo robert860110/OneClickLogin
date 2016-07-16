@@ -26,9 +26,10 @@
     <% if(locals.success) { %>
         <div class="alert alert-success"><%= success %></div>
     <% } %>
-    <form method="post">
+    <form method="post" action="/my/login">
         <p></p>
         <div style="margin-bottom: 25px" class="input-group">
+            <input id="login-phone_hidden" type="hidden" class="form-control" name="phone_number" value="">
             <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
             <input id="login-password" type="text" class="form-control" name="password" value="" placeholder="SMS confirmation code">
         </div>
@@ -47,6 +48,7 @@ $(document).ready(function(){
         e.preventDefault();
         var data = {};
         data.phone_number = $('#login-phone_number').val();
+        $("#login-phone_hidden").val(data.phone_number);
         $.ajax({
             type: 'POST',
             url: '/sendCode',
@@ -62,10 +64,13 @@ $(document).ready(function(){
         });
 
     });
+
     $("#btn-goback").click(function(){
         $("#login-submit").hide();
         $("#login-sendCode").show();
+
     });
+
 });
 </script>
 
