@@ -40,9 +40,27 @@
 
 <script>
 $(document).ready(function(){
-    $("#btn-sendCode").click(function(){
+    $("#btn-sendCode").click(function(e){
         $("#login-submit").show();
         $("#login-sendCode").hide();
+
+        e.preventDefault();
+        var data = {};
+        data.phone_number = $('#login-phone_number').val();
+        $.ajax({
+            type: 'POST',
+            url: '/sendCode',
+            data: JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            error: function(error) {
+                console.log(error);
+            },
+            success: function(msg) {
+                console.log(msg);
+            }
+        });
+
     });
     $("#btn-goback").click(function(){
         $("#login-submit").hide();

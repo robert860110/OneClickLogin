@@ -22,7 +22,8 @@
     "modelling": "0.0.3",
     "morgan": "^1.6.1",
     "q": "^1.4.1",
-    "sails-redis": "^0.10.7"
+    "sails-redis": "^0.10.7",
+    "twilio": "^2.9.1"
   },
   "description": "This is a fully functional OAuth 2 server implementation, with support for OpenID Connect specification. Based on https://github.com/ammmir/node-oauth2-provider.",
   "main": "oidc.js",

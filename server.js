@@ -96,6 +96,10 @@ var loginError = function(err, req, res, next) {
     res.redirect(req.path);
 };
 
+app.post('/sendCode', oidc.sendCode(), function(req, res, next) {
+    res.send('code sent successfully');
+});
+
 app.post('/my/login', oidc.login(validateUser), afterLogin, loginError);
 
 
