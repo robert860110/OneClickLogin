@@ -146,41 +146,52 @@ app.post('/user/consent', oidc.consent());
 
 //user creation form
 app.get('/user/create', function(req, res, next) {
-    var head = '<head><title>Sign in</title></head>';
-    var inputs = '';
-    //var fields = mkFields(oidc.model('user').attributes);
-    var fields = {
-        given_name: {
-            label: 'Given Name',
-            type: 'text'
-        },
-        middle_name: {
-            label: 'Middle Name',
-            type: 'text'
-        },
-        family_name: {
-            label: 'Family Name',
-            type: 'text'
-        },
-        email: {
-            label: 'Email',
-            type: 'email'
-        },
-        password: {
-            label: 'Password',
-            type: 'password'
-        },
-        passConfirm: {
-            label: 'Confirm Password',
-            type: 'password'
-        }
-    };
-    for (var i in fields) {
-        inputs += '<div><label for="' + i + '">' + fields[i].label + '</label><input type="' + fields[i].type + '" placeholder="' + fields[i].label + '" id="' + i + '"  name="' + i + '"/></div>';
+
+    // var head = '<head><title>Sign in</title></head>';
+    // var inputs = '';
+    // //var fields = mkFields(oidc.model('user').attributes);
+    // var fields = {
+    //     given_name: {
+    //         label: 'Given Name',
+    //         type: 'text'
+    //     },
+    //     middle_name: {
+    //         label: 'Middle Name',
+    //         type: 'text'
+    //     },
+    //     family_name: {
+    //         label: 'Family Name',
+    //         type: 'text'
+    //     },
+    //     email: {
+    //         label: 'Email',
+    //         type: 'email'
+    //     },
+    //     password: {
+    //         label: 'Password',
+    //         type: 'password'
+    //     },
+    //     passConfirm: {
+    //         label: 'Confirm Password',
+    //         type: 'password'
+    //     }
+    // };
+    // for (var i in fields) {
+    //     inputs += '<div><label for="' + i + '">' + fields[i].label + '</label><input type="' + fields[i].type + '" placeholder="' + fields[i].label + '" id="' + i + '"  name="' + i + '"/></div>';
+    // }
+    // var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
+    // var body = '<body><h1>Sign in</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
+    // res.send('<html>' + head + body + '</html>');
+    var viewData = {};
+    if (req.session.error) {
+        var viewData = { error: req.session.error };
+        delete req.session.error;
+        return res.render('register', viewData);
     }
-    var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
-    var body = '<body><h1>Sign in</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
-    res.send('<html>' + head + body + '</html>');
+    var viewData = { success: req.session.success };
+    delete req.session.success;
+    return res.render('register', viewData);
+
 });
 
 //process user creation
@@ -188,6 +199,7 @@ app.post('/user/create', oidc.use({ policies: { loggedIn: false }, models: 'user
     delete req.session.error;
     req.model.user.findOne({ email: req.body.email }, function(err, user) {
         if (err) {
+
             req.session.error = err;
         } else if (user) {
             req.session.error = 'User already exists.';
@@ -195,13 +207,14 @@ app.post('/user/create', oidc.use({ policies: { loggedIn: false }, models: 'user
         if (req.session.error) {
             res.redirect(req.path);
         } else {
-            req.body.name = req.body.given_name + ' ' + (req.body.middle_name ? req.body.middle_name + ' ' : '') + req.body.family_name;
+            req.body.phone_number = req.session.phone_number;
             req.model.user.create(req.body, function(err, user) {
                 if (err || !user) {
                     req.session.error = err ? err : 'User could not be created.';
                     res.redirect(req.path);
                 } else {
                     req.session.user = user.id;
+                    req.session.success = 'User created successfully';
                     res.redirect('/user');
                 }
             });

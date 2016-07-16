@@ -495,11 +495,12 @@ OpenIDConnect.prototype.login = function(validateCode) {
                 if (err || !smscode) {
                     return res.status(400).send('Confirmation code is not validated');
                 } else {
-
+                    var phone_number = smscode.phone_number;
                     req.model.user.findOne({ phone_number: smscode.phone }, function(err, user) {
                         if (err) {
                             return res.status(400).send('Confirmation code is not validated');
                         } else if (!user) {
+                            req.session.phone_number = phone_number;
                             return res.redirect('/user/create');
                         } else {
                             if (user.id) {
