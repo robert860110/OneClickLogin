@@ -45,6 +45,9 @@ var oidc = require('./oidc.js').oidc(options);
 
 // all environments
 app.set('port', process.env.PORT || 3000);
+
+app.set('view engine', 'ejs');
+app.set('views', __dirname + '/views');
 app.use(logger('dev'));
 app.use(bodyParser());
 app.use(methodOverride());
@@ -59,11 +62,17 @@ app.get('/', function(req, res) {
 
 //Login form (I use email as user name)
 app.get('/my/login', function(req, res, next) {
-    var head = '<head><title>Login</title></head>';
-    var inputs = '<input type="text" name="email" placeholder="Enter Email"/><input type="password" name="password" placeholder="Enter Password"/>';
-    var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
-    var body = '<body><h1>Login</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
-    res.send('<html>' + head + body + '</html>');
+    // var head = '<head><title>Login</title></head>';
+    // var inputs = '<input type="text" name="email" placeholder="Enter Email"/><input type="password" name="password" placeholder="Enter Password"/>';
+    // var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
+    // var body = '<body><h1>Login</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
+    // res.send('<html>' + head + body + '</html>');
+
+
+    // move success message into local variable so it only appears once (single read)
+    var viewData = { success: req.session.success };
+    delete req.session.success;
+    res.render('login', viewData);
 });
 
 var validateUser = function(req, next) {
