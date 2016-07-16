@@ -186,12 +186,8 @@ app.get('/user/create', function(req, res, next) {
     if (req.session.error) {
         var viewData = { error: req.session.error };
         delete req.session.error;
-        return res.render('register', viewData);
     }
-    var viewData = { success: req.session.success };
-    delete req.session.success;
     return res.render('register', viewData);
-
 });
 
 //process user creation

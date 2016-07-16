@@ -496,7 +496,7 @@ OpenIDConnect.prototype.login = function(validateCode) {
                     return res.status(400).send('Confirmation code is not validated');
                 } else {
                     var phone_number = smscode.phone_number;
-                    req.model.user.findOne({ phone_number: smscode.phone }, function(err, user) {
+                    req.model.user.findOne({ phone_number: phone_number }, function(err, user) {
                         if (err) {
                             return res.status(400).send('Confirmation code is not validated');
                         } else if (!user) {
