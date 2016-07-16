@@ -1,0 +1,30 @@
+{
+  "name": "openid-connect-example",
+  "version": "0.0.3",
+  "private": true,
+  "scripts": {
+    "start": "node openid-connect-example.js"
+  },
+  "dependencies": {
+    "base64url": "^2.0.0",
+    "body-parser": "^1.14.1",
+    "clean-obj": "^1.0.1",
+    "connect-redis": "^2.5.1",
+    "cookie-parser": "^1.4.0",
+    "errorhandler": "^1.4.2",
+    "express": "^4.14.0",
+    "express-session": "^1.11.3",
+    "extend": "^3.0.0",
+    "jwt-simple": "^0.5.0",
+    "lodash": "^4.13.1",
+    "method-override": "^2.3.5",
+    "modelling": "0.0.3",
+    "morgan": "^1.6.1",
+    "q": "^1.4.1",
+    "sails-redis": "^0.10.7"
+  },
+  "description": "This is a fully functional OAuth 2 server implementation, with support for OpenID Connect specification. Based on https://github.com/ammmir/node-oauth2-provider.",
+  "main": "oidc.js",
+  "author": "",
+  "license": "ISC"
+}
