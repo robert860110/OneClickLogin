@@ -1,24 +1,5 @@
 ﻿<%- include('partials/header') %>
 
-<div class="form-container" id = "login-sendCode">
-    <% if(locals.error) { %>
-        <div class="alert alert-danger"><%= error %></div>
-    <% } %>
-    <% if(locals.success) { %>
-        <div class="alert alert-success"><%= success %></div>
-    <% } %>
-    <form>
-        <div style="margin-bottom: 25px" class="input-group">
-            <span class="input-group-addon"><i class="glyphicon glyphicon-phone"></i></span>
-            <input id="login-phone_number" type="text" class="form-control" name="phone_number" value="<%= locals.phone_number || '' %>" placeholder="mobile number">
-        </div>
-        <div class="form-group">
-            <button id = "btn-sendCode" type="button" class="btn btn-success">Send Code</button>
-        </div>
-    </form>
-</div>
-
-
 <div class="form-container" id = "login-submit">
     <% if(locals.error) { %>
         <div class="alert alert-danger"><%= error %></div>
@@ -28,50 +9,21 @@
     <% } %>
     <form method="post" action="/my/login">
         <p></p>
-        <div style="margin-bottom: 25px" class="input-group">
-            <input id="login-phone_hidden" type="hidden" class="form-control" name="phone_number" value="">
+        <div style="margin-bottom: 25px " class="input-group">
+            
             <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-            <input id="login-password" type="text" class="form-control" name="password" value="" placeholder="SMS confirmation code">
+            <input id="login-password" type="text" class="form-control" name="password" value="" placeholder="Enter confirmation code">
         </div>
         <div class="form-group">
-            <button id = "btn-goback" type="button" class="btn btn-secondary">Go Back</button> <button type="submit" class="btn btn-success">Login</button>
+            <button id = "btn-goback" type="button" onclick="goBack()" class="btn btn-secondary">Go Back</button> <button type="submit" class="btn btn-success">Login</button>
         </div>
     </form>
 </div>
 
 <script>
-$(document).ready(function(){
-    $("#btn-sendCode").click(function(e){
-        $("#login-submit").show();
-        $("#login-sendCode").hide();
-
-        e.preventDefault();
-        var data = {};
-        data.phone_number = $('#login-phone_number').val();
-        $("#login-phone_hidden").val(data.phone_number);
-        $.ajax({
-            type: 'POST',
-            url: '/sendCode',
-            data: JSON.stringify(data),
-            dataType: "json",
-            contentType: "application/json; charset=utf-8",
-            error: function(error) {
-                console.log(error);
-            },
-            success: function(msg) {
-                console.log(msg);
-            }
-        });
-
-    });
-
-    $("#btn-goback").click(function(){
-        $("#login-submit").hide();
-        $("#login-sendCode").show();
-
-    });
-
-});
+function goBack() {
+    window.history.back();
+}
 </script>
 
 

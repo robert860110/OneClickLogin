@@ -1,0 +1,21 @@
+﻿<%- include('partials/header') %>
+
+<div class="form-container" id = "login-sendCode">
+    <% if(locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if(locals.success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <form method = "post" action= "/sendCode">
+        <div style="margin-bottom: 25px; margin-top: 45px" class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-phone"></i></span>
+            <input id="login-phone_number" type="text" class="form-control" name="phone_number" value="<%= locals.phone_number || '' %>" placeholder="mobile number">
+        </div>
+        <div class="form-group">
+            <button id = "btn-sendCode" type="submit" class="btn btn-success">Send Code</button>
+        </div>
+    </form>
+</div>
+
+<%- include('partials/footer') %>

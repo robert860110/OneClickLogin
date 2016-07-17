@@ -423,6 +423,7 @@ OpenIDConnect.prototype.sendCode = function() {
             if (_.has(req.body, 'phone_number')) {
 
                 var phone = req.body.phone_number;
+                req.session.phone_number = phone;
 
                 console.log(phone);
 
@@ -435,7 +436,10 @@ OpenIDConnect.prototype.sendCode = function() {
                         // if no phone_number to password mapping is found, create one
                         req.model.smscode.create({ phone_number: phone, password: newPassword }, function(err, smscode) {
                             if (err || !smscode) {
-                                return res.status(400).json(err);
+                                req.session.error = 'Failed to send SMS';
+                                var viewData = { error: req.session.error };
+                                delete req.session.error;
+                                return res.render('sendCode', viewData);
                             } else {
                                 twilioClient.sms.messages.create({
                                     to: phone,
@@ -445,7 +449,10 @@ OpenIDConnect.prototype.sendCode = function() {
                                     if (!err) {
                                         return next();
                                     } else {
-                                        return res.status(400).json(err);
+                                        req.session.error = 'Failed to send SMS';
+                                        var viewData = { error: req.session.error };
+                                        delete req.session.error;
+                                        return res.render('sendCode', viewData);
                                     }
                                 });
                                 return next();
@@ -455,7 +462,10 @@ OpenIDConnect.prototype.sendCode = function() {
                         // if existing phone_number to password mapping is found, destroy and create a new one
                         req.model.smscode.destroy({ phone_number: phone }, function(err, result) {
                             if (err) {
-                                return res.status(400).json(err);
+                                req.session.error = 'Failed to send SMS';
+                                var viewData = { error: req.session.error };
+                                delete req.session.error;
+                                return res.render('sendCode', viewData);
                             }
                             req.model.smscode.create({ phone_number: phone, password: newPassword }, function(err, smscode) {
                                 if (err) {
@@ -469,7 +479,10 @@ OpenIDConnect.prototype.sendCode = function() {
                                     if (!err) {
                                         return next();
                                     } else {
-                                        return res.status(400).json(err);
+                                        req.session.error = 'Failed to send SMS';
+                                        var viewData = { error: req.session.error };
+                                        delete req.session.error;
+                                        return res.render('sendCode', viewData);
                                     }
                                 });
                                 return next();
@@ -493,12 +506,20 @@ OpenIDConnect.prototype.login = function(validateCode) {
 
             validateCode(req, function(err, smscode) {
                 if (err || !smscode) {
-                    return res.status(400).send('Confirmation code is not validated');
+                    req.session.error = 'Confirmation code is incorrect';
+                    var viewData = { error: req.session.error };
+                    delete req.session.error;
+                    return res.render('login', viewData);
+
                 } else {
                     var phone_number = smscode.phone_number;
                     req.model.user.findOne({ phone_number: phone_number }, function(err, user) {
                         if (err) {
-                            return res.status(400).send('Confirmation code is not validated');
+                            req.session.error = 'Confirmation code is incorrect';
+                            var viewData = { error: req.session.error };
+                            delete req.session.error;
+                            return res.render('login', viewData);
+
                         } else if (!user) {
                             req.session.phone_number = phone_number;
                             return res.redirect('/user/create');

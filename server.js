@@ -48,6 +48,7 @@ app.set('port', process.env.PORT || 3000);
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
+
 app.use(logger('dev'));
 app.use(bodyParser());
 app.use(methodOverride());
@@ -60,24 +61,20 @@ app.get('/', function(req, res) {
     res.redirect('/my/login');
 });
 
+// app.get('/', function(req, res) {
+//     res.redirect('/sendCode');
+// });
+
 //Login form (I use email as user name)
 app.get('/my/login', function(req, res, next) {
-    // var head = '<head><title>Login</title></head>';
-    // var inputs = '<input type="text" name="email" placeholder="Enter Email"/><input type="password" name="password" placeholder="Enter Password"/>';
-    // var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
-    // var body = '<body><h1>Login</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
-    // res.send('<html>' + head + body + '</html>');
-
-
-    // move success message into local variable so it only appears once (single read)
     var viewData = { success: req.session.success };
     delete req.session.success;
-    res.render('login', viewData);
+    res.render('sendCode', viewData);
 });
 
 var validateCode = function(req, next) {
     delete req.session.error;
-    req.model.smscode.findOne({ phone_number: req.body.phone_number }, function(err, smscode) {
+    req.model.smscode.findOne({ phone_number: req.session.phone_number }, function(err, smscode) {
         console.log(smscode);
         console.log(err);
         if (!err && smscode && smscode.samePassword(req.body.password)) {
@@ -91,7 +88,7 @@ var validateCode = function(req, next) {
 
 var validateUser = function(req, next) {
     delete req.session.error;
-    req.model.user.findOne({ phone_number: req.body.phone_number }, function(err, user) {
+    req.model.user.findOne({ phone_number: req.session.phone_number }, function(err, user) {
         if (!err && user) {
             return next(null, user);
         } else {
@@ -110,8 +107,17 @@ var loginError = function(err, req, res, next) {
     res.redirect(req.path);
 };
 
+app.get('/sendCode', function(req, res, next) {
+    var viewData = { success: req.session.success };
+    delete req.session.success;
+    res.render('sendCode', viewData);
+});
+
 app.post('/sendCode', oidc.sendCode(), function(req, res, next) {
-    res.send('code sent successfully');
+    req.session.success = 'A SMS is sent to you with confirmation code';
+    var viewData = { success: req.session.success };
+    delete req.session.success;
+    res.render('login', viewData);
 });
 
 app.post('/my/login', oidc.login(validateCode), afterLogin, loginError);
@@ -218,8 +224,11 @@ app.post('/user/create', oidc.use({ policies: { loggedIn: false }, models: 'user
     });
 });
 
-app.get('/user', oidc.check(), function(req, res, next) {
-    res.send('<h1>User Page</h1><div><a href="/client">See registered clients of user</a></div>');
+app.get('/user', oidc.use({ policies: { loggedIn: true }, models: 'user' }), function(req, res, next) {
+    //res.send('<h1>User Page</h1><div><a href="/client">See registered clients of user</a></div>');
+    var viewData = { success: req.session.success };
+    delete req.session.success;
+    res.render('account', viewData);
 });
 
 //User Info Endpoint
