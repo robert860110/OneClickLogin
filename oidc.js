@@ -503,6 +503,8 @@ OpenIDConnect.prototype.login = function(validateCode) {
     return [self.use({ policies: { loggedIn: false }, models: ['user', 'smscode'] }),
         function(req, res, next) {
 
+            console.log('login---------------------------------' + req.session.authorize_url);
+
 
             validateCode(req, function(err, smscode) {
                 if (err || !smscode) {
@@ -579,10 +581,15 @@ OpenIDConnect.prototype.auth = function() {
         response_mode: false
     };
     return [function(req, res, next) {
+            req.session.authorize_url = req.url;
             self.endpointParams(spec, req, res, next);
         },
         self.use(['client', 'consent', 'auth', 'access']),
         function(req, res, next) {
+
+
+            //console.log(req.session.authorize_url);
+
             Q(req.parsedParams).then(function(params) {
                     //Step 2: Check if response_type is supported and client_id is valid.
 
@@ -830,7 +837,10 @@ OpenIDConnect.prototype.consent = function() {
                 }
                 req.model.consent.destroy({ user: req.session.user, client: req.session.client_id }, function(err, result) {
                     req.model.consent.create({ user: req.session.user, client: req.session.client_id, scopes: scopes }, function(err, consent) {
-                        res.redirect(return_url);
+                        if (req.session.authorize_url) {
+                            console.log('consent---------' + req.session.authorize_url);
+                            return res.redirect(req.session.authorize_url);
+                        } else return res.redirect(return_url);
                     });
                 });
             } else {

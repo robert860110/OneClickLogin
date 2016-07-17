@@ -69,6 +69,7 @@ app.get('/', function(req, res) {
 app.get('/my/login', function(req, res, next) {
     var viewData = { success: req.session.success };
     delete req.session.success;
+    console.log('login----------'+ req.session.authorize_url);
     res.render('sendCode', viewData);
 });
 
@@ -99,7 +100,9 @@ var validateUser = function(req, next) {
 };
 
 var afterLogin = function(req, res, next) {
-    res.redirect(req.param('return_url') || '/user');
+    if (req.session.authorize_url) {
+        return res.redirect(req.session.authorize_url);
+    } else return res.redirect(req.param('return_url') || '/user');
 };
 
 var loginError = function(err, req, res, next) {
@@ -110,6 +113,7 @@ var loginError = function(err, req, res, next) {
 app.get('/sendCode', function(req, res, next) {
     var viewData = { success: req.session.success };
     delete req.session.success;
+    console.log('sendCode---------------------------------' + req.session.authorize_url);
     res.render('sendCode', viewData);
 });
 
@@ -217,7 +221,10 @@ app.post('/user/create', oidc.use({ policies: { loggedIn: false }, models: 'user
                 } else {
                     req.session.user = user.id;
                     req.session.success = 'User created successfully';
-                    res.redirect('/user');
+                    if (req.session.authorize_url) {
+                        console.log('create user---------' + req.session.authorize_url);
+                        return res.redirect(req.session.authorize_url);
+                    } else return res.redirect('/user');
                 }
             });
         }
@@ -225,10 +232,10 @@ app.post('/user/create', oidc.use({ policies: { loggedIn: false }, models: 'user
 });
 
 app.get('/user', oidc.use({ policies: { loggedIn: true }, models: 'user' }), function(req, res, next) {
-    //res.send('<h1>User Page</h1><div><a href="/client">See registered clients of user</a></div>');
-    var viewData = { success: req.session.success };
-    delete req.session.success;
-    res.render('account', viewData);
+    res.send('<h1>User Page</h1><div><a href="/client">See registered clients of user</a></div>');
+    // var viewData = { success: req.session.success };
+    // delete req.session.success;
+    // res.render('account', viewData);
 });
 
 //User Info Endpoint
