@@ -17,7 +17,8 @@ var crypto = require('crypto'),
     bodyParser = require('body-parser'),
     cookieParser = require('cookie-parser'),
     errorHandler = require('errorhandler'),
-    methodOverride = require('method-override');
+    methodOverride = require('method-override'),
+    request = require('request');
 
 var app = express();
 
@@ -69,7 +70,7 @@ app.get('/', function(req, res) {
 app.get('/my/login', function(req, res, next) {
     var viewData = { success: req.session.success };
     delete req.session.success;
-    console.log('login----------'+ req.session.authorize_url);
+    console.log('login----------' + req.session.authorize_url);
     res.render('sendCode', viewData);
 });
 
@@ -140,15 +141,20 @@ app.post('/user/token', oidc.token());
 
 //user consent form
 app.get('/user/consent', function(req, res, next) {
-    var head = '<head><title>Consent</title></head>';
-    var lis = [];
-    for (var i in req.session.scopes) {
-        lis.push('<li><b>' + i + '</b>: ' + req.session.scopes[i].explain + '</li>');
-    }
-    var ul = '<ul>' + lis.join('') + '</ul>';
-    var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
-    var body = '<body><h1>Consent</h1><form method="POST">' + ul + '<input type="submit" name="accept" value="Accept"/><input type="submit" name="cancel" value="Cancel"/></form>' + error;
-    res.send('<html>' + head + body + '</html>');
+    // var head = '<head><title>Consent</title></head>';
+    // var lis = [];
+    // for (var i in req.session.scopes) {
+    //     lis.push('<li><b>' + i + '</b>: ' + req.session.scopes[i].explain + '</li>');
+    // }
+    // var ul = '<ul>' + lis.join('') + '</ul>';
+    // var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
+    // var body = '<body><h1>Consent</h1><form method="POST">' + ul + '<input type="submit" name="accept" value="Accept"/><input type="submit" name="cancel" value="Cancel"/></form>' + error;
+    // res.send('<html>' + head + body + '</html>');
+
+    delete req.session.success;
+    var viewData = { scopes: req.session.scopes };
+    res.render('consent', viewData);
+
 });
 
 //process user consent form
@@ -192,12 +198,25 @@ app.get('/user/create', function(req, res, next) {
     // var error = req.session.error ? '<div>' + req.session.error + '</div>' : '';
     // var body = '<body><h1>Sign in</h1><form method="POST">' + inputs + '<input type="submit"/></form>' + error;
     // res.send('<html>' + head + body + '</html>');
-    var viewData = {};
-    if (req.session.error) {
-        var viewData = { error: req.session.error };
-        delete req.session.error;
-    }
-    return res.render('register', viewData);
+
+    var idURL = 'https://api.opencnam.com/v3/phone/1' + req.session.phone_number + '?account_sid=AC6c6026bbcd5f45afab74b7dc7026f089&auth_token=AUadf2e60af5244f2590867ae56f839f45';
+
+    request({
+        url: idURL,
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            return res.render('register');
+        } else {
+            var viewData = {};
+            var viewData = {
+                name: body.name,
+                error: req.session.error
+            };
+            delete req.session.error;
+            return res.render('register', viewData);
+        }
+    });
 });
 
 //process user creation

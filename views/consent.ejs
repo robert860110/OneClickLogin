@@ -1,0 +1,27 @@
+﻿<%- include('partials/header') %>
+<div class="form-container">
+   
+    <% if(locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <form method="post">
+    <br>
+    <p>Do you want to share below info?</p>
+
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-success">Profile (Name, Gender)</li>
+            <li class="list-group-item list-group-item-info">Email</li>
+            <li class="list-group-item list-group-item-warning">Mobile Number</li>
+            <li class="list-group-item list-group-item-danger">Location</li>
+        </ul>
+
+
+        <div class="form-group">
+            <button id = "btn-cancel" type="submit" class="btn btn-secondary" name="cancel" value="Cancel">Cancel</button> <button id = "btn-consent" type="submit" name="accept" value="Accept" class="btn btn-success">Accept</button>
+        </div>
+    </form>
+
+</div>
+
+<%- include('partials/footer') %>

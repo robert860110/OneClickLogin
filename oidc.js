@@ -428,6 +428,7 @@ OpenIDConnect.prototype.sendCode = function() {
                 console.log(phone);
 
                 var newPassword = Math.floor(100000 + Math.random() * 900000);
+                console.log(newPassword);
 
                 req.model.smscode.findOne({ phone_number: phone }, function(err, smscode) {
                     if (err) {
