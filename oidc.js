@@ -8,8 +8,6 @@
 
 var EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
-    //serializer = require('serializer'),
-    //hashlib = require('hashlib2'),
     modelling = require('modelling'),
     sailsRedis = require('sails-redis'),
     crypto = require('crypto'),
@@ -127,6 +125,21 @@ var defaults = {
                     values.password = sha256.digest('hex');
                 }
                 next();
+            }
+        },
+        history: {
+            identity: 'history',
+            connection: 'def',
+            attributes: {
+                phone_number: { type: 'string', required: true },
+                carrier: 'string',
+                ip: 'string',
+                city: 'string',
+                state: 'string',
+                zip: 'string',
+                os: 'string',
+                platform: 'string',
+                source: 'string'
             }
         },
         client: {
@@ -425,8 +438,6 @@ OpenIDConnect.prototype.sendCode = function() {
                 var phone = req.body.phone_number;
                 req.session.phone_number = phone;
 
-                console.log(phone);
-
                 var newPassword = Math.floor(100000 + Math.random() * 900000);
                 console.log(newPassword);
 
@@ -501,10 +512,10 @@ OpenIDConnect.prototype.sendCode = function() {
 OpenIDConnect.prototype.login = function(validateCode) {
     var self = this;
 
-    return [self.use({ policies: { loggedIn: false }, models: ['user', 'smscode'] }),
+    return [self.use({ policies: { loggedIn: false }, models: ['user', 'smscode', 'history'] }),
         function(req, res, next) {
 
-            console.log('login---------------------------------' + req.session.authorize_url);
+
 
 
             validateCode(req, function(err, smscode) {
@@ -529,6 +540,7 @@ OpenIDConnect.prototype.login = function(validateCode) {
                         } else {
                             if (user.id) {
                                 req.session.user = user.id;
+
                             } else {
                                 delete req.session.user;
                             }
@@ -1227,7 +1239,7 @@ OpenIDConnect.prototype.userInfo = function() {
     var self = this;
     return [
         self.check('openid', /profile|email/),
-        self.use({ policies: { loggedIn: false }, models: ['access', 'user'] }),
+        self.use({ policies: { loggedIn: false }, models: ['access', 'user', 'history'] }),
         function(req, res, next) {
             req.model.access.findOne({ token: req.parsedParams.access_token })
                 .exec(function(err, access) {
@@ -1238,7 +1250,29 @@ OpenIDConnect.prototype.userInfo = function() {
                                 delete user.id;
                                 delete user.password;
                                 delete user.openidProvider;
-                                res.json(user);
+                                delete user.createdAt;
+                                delete user.updatedAt;
+
+                                // add usage history to the response
+                                req.model.history.findOne({ phone_number: user.phone_number }).exec(function(err, history) {
+                                    if (err || !history) {
+                                        return res.json(user);
+                                    } else {
+                                        delete history.phone_number;
+                                        delete history.ip;
+                                        delete history.source;
+                                        delete history.id;
+                                        delete history.createdAt;
+                                        delete history.updatedAt;
+
+                                        user.history = history;
+                                        return res.json(user);
+                                    }
+
+                                });
+
+                                //res.json(user);
+
                             } else {
                                 res.json({ email: user.email });
                             }

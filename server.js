@@ -18,7 +18,9 @@ var crypto = require('crypto'),
     cookieParser = require('cookie-parser'),
     errorHandler = require('errorhandler'),
     methodOverride = require('method-override'),
-    request = require('request');
+    request = require('request'),
+    useragent = require('express-useragent'),
+    requestIp = require('request-ip');
 
 var app = express();
 
@@ -50,6 +52,8 @@ app.set('port', process.env.PORT || 3000);
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
+app.use(requestIp.mw())
+app.use(useragent.express());
 app.use(logger('dev'));
 app.use(bodyParser());
 app.use(methodOverride());
@@ -101,6 +105,39 @@ var validateUser = function(req, next) {
 };
 
 var afterLogin = function(req, res, next) {
+
+    // log ussage history
+    var data = {};
+    data = {
+        phone_number: req.session.phone_number,
+        //ip: req.clientIp,
+        ip: '70.197.17.210',
+        os: req.useragent.os,
+        platform: req.useragent.platform,
+        source: req.useragent.source
+    };
+
+    request({
+        url: 'http://ip-api.com/json/' + data.ip,
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            console.log(error);
+        } else {
+            data.city = body.city;
+            data.state = body.regionName;
+            data.zip = body.zip;
+            data.carrier = body.isp;
+
+            req.model.history.create(data, function(err, history) {
+                if (error) {
+                    console.log(error);
+                }
+            });
+
+        }
+    });
+
     if (req.session.authorize_url) {
         return res.redirect(req.session.authorize_url);
     } else return res.redirect(req.param('return_url') || '/user');
@@ -110,6 +147,48 @@ var loginError = function(err, req, res, next) {
     req.session.error = err.message;
     res.redirect(req.path);
 };
+
+app.post('/my/login', oidc.login(validateCode), oidc.use({ policies: { loggedIn: false }, models: 'history' }), loginError, function(req, res, next) {
+
+    // log ussage history
+    var data = {};
+    data = {
+        phone_number: req.session.phone_number,
+        ip: req.clientIp,
+        //ip: '70.197.17.210',
+        os: req.useragent.os,
+        platform: req.useragent.platform,
+        source: req.useragent.source
+    };
+
+    request({
+        url: 'http://ip-api.com/json/' + data.ip,
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            console.log(error);
+        } else {
+            data.city = body.city;
+            data.state = body.regionName;
+            data.zip = body.zip;
+            data.carrier = body.isp;
+
+            req.model.history.destroy({ phone_number: data.phone_number }, function(err, result) {
+                req.model.history.create(data, function(err, history) {
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+        }
+    });
+
+    if (req.session.authorize_url) {
+        return res.redirect(req.session.authorize_url);
+    } else return res.redirect(req.param('return_url') || '/user');
+
+});
 
 app.get('/sendCode', function(req, res, next) {
     var viewData = { success: req.session.success };
@@ -124,9 +203,6 @@ app.post('/sendCode', oidc.sendCode(), function(req, res, next) {
     delete req.session.success;
     res.render('login', viewData);
 });
-
-app.post('/my/login', oidc.login(validateCode), afterLogin, loginError);
-
 
 app.all('/logout', oidc.removetokens(), function(req, res, next) {
     req.session.destroy();
