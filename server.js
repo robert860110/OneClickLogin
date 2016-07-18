@@ -198,7 +198,7 @@ app.get('/sendCode', function(req, res, next) {
 });
 
 app.post('/sendCode', oidc.sendCode(), function(req, res, next) {
-    req.session.success = 'A SMS is sent to you with confirmation code';
+    req.session.success = 'A SMS is sent to you';
     var viewData = { success: req.session.success };
     delete req.session.success;
     res.render('login', viewData);
