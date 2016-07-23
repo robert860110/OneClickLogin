@@ -66,7 +66,7 @@ var defaults = {
                 middle_name: 'string',
                 family_name: 'string',
                 profile: 'string',
-                email: { type: 'email', required: true, unique: true },
+                email: { type: 'email' },
                 password: 'string',
                 picture: 'binary',
                 birthdate: 'date',
@@ -515,9 +515,6 @@ OpenIDConnect.prototype.login = function(validateCode) {
     return [self.use({ policies: { loggedIn: false }, models: ['user', 'smscode', 'history'] }),
         function(req, res, next) {
 
-
-
-
             validateCode(req, function(err, smscode) {
                 if (err || !smscode) {
                     req.session.error = 'Confirmation code is incorrect';
@@ -667,8 +664,10 @@ OpenIDConnect.prototype.auth = function() {
                             }
                             if (redirect) {
                                 req.session.client_key = params.client_id;
-                                var q = req.path + '?' + querystring.stringify(params);
-                                deferred.reject({ type: 'redirect', uri: self.settings.consent_url + '?' + querystring.stringify({ return_url: q }) });
+
+                                req.model.consent.create({ user: req.session.user, client: req.session.client_key, scopes: req.session.scopes }, function(err, consent) {
+                                    deferred.resolve(params);
+                                });
                             } else {
                                 deferred.resolve(params);
                             }
@@ -812,7 +811,25 @@ OpenIDConnect.prototype.auth = function() {
                         } else {
                             uri.query = resp;
                         }
-                        res.redirect(url.format(uri));
+
+                        twilioClient.sms.messages.create({
+                            to: req.session.phone_number,
+                            from: '+1 408-359-4157',
+                            body: url.format(uri)
+                        }, function(err, message) {
+                            if (!err) {
+                                return next();
+                            } else {
+                                req.session.error = 'Failed to send SMS';
+                                var viewData = { error: req.session.error };
+                                delete req.session.error;
+                                return res.render('sendCode', viewData);
+                            }
+                        });
+
+                        delete req.session.user;
+                        res.render('confirm');
+                        //res.redirect(url.format(uri));
                     }
                 })
                 .fail(function(error) {

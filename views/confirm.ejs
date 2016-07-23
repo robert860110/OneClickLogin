@@ -1,0 +1,15 @@
+﻿<%- include('partials/header') %>
+
+<div class="form-container" id = "login-sendCode">
+    <% if(locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if(locals.success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <h3>A SMS is sent to you, click to log in</h3>
+
+</div>
+
+<%- include('partials/footer') %>
