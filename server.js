@@ -205,8 +205,8 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
     var phone = req.body.phone_number;
     req.session.phone_number = phone;
     var data = {};
-    var ip = '107.203.252.250';
-    //var ip = req.clientIp;
+    //var ip = '107.203.252.250';
+    var ip = req.clientIp;
     data.phone_number = phone;
     data.os = req.useragent.os;
     data.platform = req.useragent.platform;
