@@ -72,6 +72,7 @@ app.get('/', function(req, res) {
 
 //Login form (I use email as user name)
 app.get('/my/login', function(req, res, next) {
+    console.log(req.session.user);
     var viewData = { success: req.session.success };
     delete req.session.success;
     console.log('login----------' + req.session.authorize_url);
@@ -209,8 +210,9 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
     data.platform = req.useragent.platform;
     //data.source = req.useragent.source;
 
-    req.model.user.find({ phone_number: phone }, function(err, user) {
+    req.model.user.findOne({ phone_number: phone }, function(err, user) {
         if (err || !user) {
+
             // get user name
             request({
                 url: 'https://api.opencnam.com/v3/phone/1' + req.session.phone_number + '?account_sid=AC6c6026bbcd5f45afab74b7dc7026f089&auth_token=AUadf2e60af5244f2590867ae56f839f45',
@@ -218,6 +220,7 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
             }, function(error, response, body) {
 
                 req.model.user.create({ phone_number: phone, name: body.name }, function(err, user) {
+
                     if (user.id) {
                         req.session.user = user.id;
                     } else {
@@ -245,7 +248,7 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                         data.carrier = body.isp;
 
                         req.model.history.create(data, function(err, history) {
-                            console.log(history);
+
                             if (req.session.authorize_url) {
                                 return res.redirect(req.session.authorize_url);
                             } else return res.send('Error');
@@ -254,11 +257,13 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                 });
             });
         } else {
+
             if (user.id) {
                 req.session.user = user.id;
             } else {
                 delete req.session.user;
             }
+
             if (user.sub) {
                 if (typeof user.sub === 'function') {
                     req.session.sub = user.sub();
@@ -281,8 +286,7 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                 data.carrier = body.isp;
 
                 req.model.history.create(data, function(err, history) {
-                    console.log(err);
-                    console.log(history);
+
                     if (req.session.authorize_url) {
                         return res.redirect(req.session.authorize_url);
                     } else return res.send('Error');

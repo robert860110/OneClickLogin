@@ -597,7 +597,6 @@ OpenIDConnect.prototype.auth = function() {
         self.use(['client', 'consent', 'auth', 'access']),
         function(req, res, next) {
 
-
             //console.log(req.session.authorize_url);
 
             Q(req.parsedParams).then(function(params) {
@@ -812,6 +811,8 @@ OpenIDConnect.prototype.auth = function() {
                             uri.query = resp;
                         }
 
+                        console.log('twilio');
+
                         twilioClient.sms.messages.create({
                             to: req.session.phone_number,
                             from: '+1 408-359-4157',
@@ -820,6 +821,10 @@ OpenIDConnect.prototype.auth = function() {
                             if (!err) {
                                 return next();
                             } else {
+                                console.log('----------------------err---------------');
+
+                                console.log(err);
+
                                 req.session.error = 'Failed to send SMS';
                                 var viewData = { error: req.session.error };
                                 delete req.session.error;
