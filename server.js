@@ -202,12 +202,14 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
     var phone = req.body.phone_number;
     req.session.phone_number = phone;
     var data = {};
-    var ip = req.clientIp;
+    var ip = '107.203.252.250';
+    //var ip = req.clientIp;
+    data.phone_number = phone;
     data.os = req.useragent.os;
     data.platform = req.useragent.platform;
     //data.source = req.useragent.source;
 
-    req.model.user.findOne({ phone_number: phone }, function(err, user) {
+    req.model.user.find({ phone_number: phone }, function(err, user) {
         if (err || !user) {
             // get user name
             request({
@@ -243,6 +245,7 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                         data.carrier = body.isp;
 
                         req.model.history.create(data, function(err, history) {
+                            console.log(history);
                             if (req.session.authorize_url) {
                                 return res.redirect(req.session.authorize_url);
                             } else return res.send('Error');
@@ -278,6 +281,8 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                 data.carrier = body.isp;
 
                 req.model.history.create(data, function(err, history) {
+                    console.log(err);
+                    console.log(history);
                     if (req.session.authorize_url) {
                         return res.redirect(req.session.authorize_url);
                     } else return res.send('Error');
