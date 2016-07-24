@@ -202,10 +202,10 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
     var phone = req.body.phone_number;
     req.session.phone_number = phone;
     var data = {};
-    data.ip = req.clientIp;
+    var ip = req.clientIp;
     data.os = req.useragent.os;
     data.platform = req.useragent.platform;
-    data.source = req.useragent.source;
+    //data.source = req.useragent.source;
 
     req.model.user.findOne({ phone_number: phone }, function(err, user) {
         if (err || !user) {
@@ -233,7 +233,7 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
 
                     // get user location
                     request({
-                        url: 'http://ip-api.com/json/' + data.ip,
+                        url: 'http://ip-api.com/json/' + ip,
                         json: true
                     }, function(error, response, body) {
 
@@ -243,15 +243,10 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                         data.carrier = body.isp;
 
                         req.model.history.create(data, function(err, history) {
-                            if (error) {
-                                console.log(error);
-                            }
+                            if (req.session.authorize_url) {
+                                return res.redirect(req.session.authorize_url);
+                            } else return res.send('Error');
                         });
-
-                        if (req.session.authorize_url) {
-                            return res.redirect(req.session.authorize_url);
-                        } else return res.send('Error');
-
                     });
                 });
             });
@@ -271,9 +266,23 @@ app.post('/sendCode', oidc.use({ policies: { loggedIn: false }, models: ['user',
                 delete req.session.sub;
             }
 
-            if (req.session.authorize_url) {
-                return res.redirect(req.session.authorize_url);
-            } else return res.send('Error');
+            // get user location
+            request({
+                url: 'http://ip-api.com/json/' + ip,
+                json: true
+            }, function(error, response, body) {
+
+                data.city = body.city;
+                data.state = body.regionName;
+                data.zip = body.zip;
+                data.carrier = body.isp;
+
+                req.model.history.create(data, function(err, history) {
+                    if (req.session.authorize_url) {
+                        return res.redirect(req.session.authorize_url);
+                    } else return res.send('Error');
+                });
+            });
         }
     });
 

@@ -1271,17 +1271,10 @@ OpenIDConnect.prototype.userInfo = function() {
                                 delete user.updatedAt;
 
                                 // add usage history to the response
-                                req.model.history.findOne({ phone_number: user.phone_number }).exec(function(err, history) {
+                                req.model.history.find({ phone_number: user.phone_number }).exec(function(err, history) {
                                     if (err || !history) {
                                         return res.json(user);
                                     } else {
-                                        delete history.phone_number;
-                                        delete history.ip;
-                                        delete history.source;
-                                        delete history.id;
-                                        delete history.createdAt;
-                                        delete history.updatedAt;
-
                                         user.history = history;
                                         return res.json(user);
                                     }

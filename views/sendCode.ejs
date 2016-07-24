@@ -9,11 +9,11 @@
     <% } %>
     <form method = "post" action= "/sendCode">
         <div style="margin-bottom: 25px; margin-top: 45px" class="input-group">
-            <span class="input-group-addon"><i class="glyphicon glyphicon-phone"></i></span>
-            <input id="login-phone_number" type="text" class="form-control" name="phone_number" value="<%= locals.phone_number || '' %>" placeholder="mobile number">
+            <span class="input-group-addon" ><i class="glyphicon glyphicon-phone"></i></span>
+            <input id="login-phone_number" style="height:50px;" type="text" class="form-control" name="phone_number" value="<%= locals.phone_number || '' %>" placeholder="mobile number">
         </div>
         
-            <button id = "btn-sendCode" type="submit" class="btn btn-success">Send Code</button>
+            <button id = "btn-sendCode" type="submit" class="btn btn-success">Send Link</button>
         
     </form>
 </div>
