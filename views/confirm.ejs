@@ -1,6 +1,6 @@
 ﻿<%- include('partials/header') %>
 
-<div class="form-container" id = "login-sendCode">
+<div class="form-container" id = "login-sendCode" >
     <% if(locals.error) { %>
         <div class="alert alert-danger"><%= error %></div>
     <% } %>
@@ -9,6 +9,7 @@
     <% } %>
 
     <h3>A SMS is sent to you, click the link to log in</h3>
+    <img src="ninja.png" style="width:200px; height:200px;" class="center-block" class="img-responsive" alt="ninja">
 
 </div>
 

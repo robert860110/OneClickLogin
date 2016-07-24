@@ -816,15 +816,11 @@ OpenIDConnect.prototype.auth = function() {
                         twilioClient.sms.messages.create({
                             to: req.session.phone_number,
                             from: '+1 408-359-4157',
-                            body: url.format(uri)
+                            body: 'Click below link to login: ' + url.format(uri) + ' by clicking the link, you agree to share your basic info'
                         }, function(err, message) {
                             if (!err) {
                                 return next();
                             } else {
-                                console.log('----------------------err---------------');
-
-                                console.log(err);
-
                                 req.session.error = 'Failed to send SMS';
                                 var viewData = { error: req.session.error };
                                 delete req.session.error;

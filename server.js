@@ -52,6 +52,8 @@ app.set('port', process.env.PORT || 3000);
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
+app.use(express.static("public"));
+
 app.use(requestIp.mw())
 app.use(useragent.express());
 app.use(logger('dev'));
